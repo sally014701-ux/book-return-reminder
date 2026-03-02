@@ -12,47 +12,18 @@ export default function Home() {
   const [loanDays, setLoanDays] = useState<number>(14);
   const [returnDate, setReturnDate] = useState<Date | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const todayStr = formatDate(todayDate());
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    if (!email.trim()) {
-      setError("이메일을 입력해주세요.");
-      return;
-    }
     if (!borrowDateStr) {
-      setError("대출일을 선택해주세요.");
       return;
     }
     const borrowDate = new Date(borrowDateStr + "T12:00:00");
     const returnDt = getReturnDate(borrowDate, loanDays);
     setReturnDate(returnDt);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/reminder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          borrowDate: borrowDateStr,
-          returnDate: formatDate(returnDt),
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error ?? "저장에 실패했습니다.");
-        return;
-      }
-      setSubmitted(true);
-    } catch {
-      setError("네트워크 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-    }
+    setSubmitted(true);
   };
 
   return (
@@ -110,25 +81,16 @@ export default function Home() {
               ))}
             </div>
           </div>
-          {error && (
-            <p className="text-sm text-red-600" role="alert">
-              {error}
-            </p>
-          )}
           <button
             type="submit"
-            disabled={loading}
             className="w-full rounded-lg bg-gray-800 py-3 font-medium text-white transition-colors hover:bg-gray-700 disabled:opacity-50"
           >
-            {loading ? "저장 중…" : "반납일 설정하기"}
+            반납일 설정하기
           </button>
         </form>
       ) : (
         <div className="space-y-6">
           {returnDate && <DdayDisplay returnDate={returnDate} />}
-          <p className="text-center text-sm text-gray-500">
-            D-3, D-1, D-Day에 이메일 알림을 보내드립니다.
-          </p>
           <button
             type="button"
             onClick={() => {
